@@ -31,25 +31,19 @@ df_worldometer.columns = df_worldometer.columns.str.strip()
 # 🗓️ Conversion de la date Worldometer
 df_worldometer['date'] = pd.to_datetime(df_worldometer['date'], errors='coerce')
 
-# 🌍 CONTINENT par défaut (à adapter si besoin)
-default_continent = "Africa"
-continent_id = get_or_insert_continent(default_continent)
-
 # 🚀 Insertion des données COVID-19
 for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc="Insertion des données COVID-19"):
     try:
+        continent_name = row.get("WHO Region", "Unknown")  # <- 🧭 on récupère la région de l'OMS
+        continent_id = get_or_insert_continent(continent_name)
         country_id = get_or_insert_country(row["Country/Region"], continent_id)
         disease_id = get_or_insert_disease("COVID-19")
         insert_global_data(
-            country_id, disease_id, None,  # Pas de date dans ce CSV
-            row.get("Confirmed") if pd.notna(row.get("Confirmed")) else None,
-            row.get("New cases") if pd.notna(row.get("New cases")) else None,
-            row.get("Deaths") if pd.notna(row.get("Deaths")) else None,
-            row.get("New deaths") if pd.notna(row.get("New deaths")) else None,
-            row.get("Recovered") if pd.notna(row.get("Recovered")) else None,
-            row.get("New recovered") if pd.notna(row.get("New recovered")) else None,
-            row.get("Active") if pd.notna(row.get("Active")) else None, 
-            None, None, None
+            country_id, disease_id, None,
+            row.get("Confirmed"), row.get("New cases"),
+            row.get("Deaths"), row.get("New deaths"),
+            row.get("Recovered"), row.get("New recovered"),
+            row.get("Active"), None, None, None
         )
     except Exception as e:
         print(f"❌ Erreur pour {row.get('Country/Region')}: {e}")
@@ -57,19 +51,16 @@ for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc=
 # 🚀 Insertion des données Monkeypox
 for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), desc="Insertion des données Monkeypox"):
     try:
+        continent_id = get_or_insert_continent("Unknown")  # 🧭 pas de région définie ici
         country_id = get_or_insert_country(row["location"], continent_id)
         disease_id = get_or_insert_disease("Monkeypox")
         insert_global_data(
             country_id, disease_id, row.get("date"),
-            row.get("total_cases") if pd.notna(row.get("total_cases")) else None,
-            row.get("new_cases") if pd.notna(row.get("new_cases")) else None,
-            row.get("total_deaths") if pd.notna(row.get("total_deaths")) else None,
-            row.get("new_deaths") if pd.notna(row.get("new_deaths")) else None,
+            row.get("total_cases"), row.get("new_cases"),
+            row.get("total_deaths"), row.get("new_deaths"),
             None, None,
-            row.get("active_cases") if pd.notna(row.get("active_cases")) else None,
-            None,
-            row.get("total_tests") if pd.notna(row.get("total_tests")) else None,
-            row.get("tests_per_million") if pd.notna(row.get("tests_per_million")) else None
+            row.get("active_cases"), None,
+            row.get("total_tests"), row.get("tests_per_million")
         )
     except Exception as e:
         print(f"❌ Erreur pour {row.get('location')}: {e}")
@@ -77,17 +68,15 @@ for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), d
 # 🚀 Insertion des données Worldometer
 for _, row in tqdm(df_worldometer.iterrows(), total=len(df_worldometer), desc="Insertion des données Worldometer"):
     try:
+        continent_id = get_or_insert_continent("Unknown")  # 🧭 pas de région définie ici non plus
         country_id = get_or_insert_country(row["country"], continent_id)
         disease_id = get_or_insert_disease("COVID-19")
         insert_global_data(
             country_id, disease_id, row.get("date"),
-            row.get("cumulative_total_cases") if pd.notna(row.get("cumulative_total_cases")) else None,
-            row.get("daily_new_cases") if pd.notna(row.get("daily_new_cases")) else None,
-            row.get("cumulative_total_deaths") if pd.notna(row.get("cumulative_total_deaths")) else None,
-            row.get("daily_new_deaths") if pd.notna(row.get("daily_new_deaths")) else None,
+            row.get("cumulative_total_cases"), row.get("daily_new_cases"),
+            row.get("cumulative_total_deaths"), row.get("daily_new_deaths"),
             None, None,
-            row.get("active_cases") if pd.notna(row.get("active_cases")) else None,
-            None, None, None
+            row.get("active_cases"), None, None, None
         )
     except Exception as e:
         print(f"❌ Erreur pour {row.get('country')}: {e}")
