@@ -11,7 +11,7 @@ def get_db_connection():
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")  # Assure-toi que le nom de la base est spécifié
+        database=os.getenv("DB_NAME")  # Assure-toi que le nom de la base est spécifié dans ton fichier .env
     )
     return connection
 
@@ -111,3 +111,35 @@ def insert_global_data(country_id, disease_id, date, total_cases, new_cases, tot
     # Commit des changements dans la base de données
     connection.commit()
     connection.close()
+
+# Exemple d'insertion des données à partir d'un fichier CSV ou d'une autre source
+def insert_data_from_csv(df):
+    """Fonction pour insérer les données d'un DataFrame dans la base de données."""
+    for _, row in df.iterrows():
+        continent_name = row['Continent']
+        country_name = row['Country/Region']
+        disease_name = "COVID-19"  # Exemple pour la maladie (s'adapte à ton cas)
+        date = row['Date']
+        total_cases = row.get('Total Cases', None)
+        new_cases = row.get('New Cases', None)
+        total_deaths = row.get('Total Deaths', None)
+        new_deaths = row.get('New Deaths', None)
+        total_recovered = row.get('Total Recovered', None)
+        new_recovered = row.get('New Recovered', None)
+        active_cases = row.get('Active Cases', None)
+        serious_critical = row.get('Serious Critical', None)
+        total_tests = row.get('Total Tests', None)
+        tests_per_million = row.get('Tests per Million', None)
+        
+        # Insérer ou récupérer l'ID du continent
+        continent_id = get_or_insert_continent(continent_name)
+        
+        # Insérer ou récupérer l'ID du pays
+        country_id = get_or_insert_country(country_name, continent_id)
+        
+        # Insérer ou récupérer l'ID de la maladie
+        disease_id = get_or_insert_disease(disease_name)
+        
+        # Insérer les données globales dans la base de données
+        insert_global_data(country_id, disease_id, date, total_cases, new_cases, total_deaths, new_deaths, total_recovered, new_recovered, active_cases, serious_critical, total_tests, tests_per_million)
+
