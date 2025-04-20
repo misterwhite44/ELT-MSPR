@@ -8,7 +8,7 @@ CREATE TABLE Continent (
 CREATE TABLE Country (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    code3 INT,
+    code3 VARCHAR(255),
     population BIGINT,
     continent_id INT,
     FOREIGN KEY (continent_id) REFERENCES Continent(id)

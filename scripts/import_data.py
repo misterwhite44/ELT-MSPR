@@ -34,7 +34,7 @@ df_worldometer['date'] = pd.to_datetime(df_worldometer['date'], errors='coerce')
 # 🚀 Insertion des données COVID-19
 for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc="Insertion des données COVID-19"):
     try:
-        continent_name = row.get("WHO Region", "Unknown")  # <- 🧭 on récupère la région de l'OMS
+        continent_name = row.get("WHO Region", "Unknown")
         continent_id = get_or_insert_continent(continent_name)
         country_id = get_or_insert_country(row["Country/Region"], continent_id)
         disease_id = get_or_insert_disease("COVID-19")
@@ -48,11 +48,12 @@ for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc=
     except Exception as e:
         print(f"❌ Erreur pour {row.get('Country/Region')}: {e}")
 
-# 🚀 Insertion des données Monkeypox
+# 🚀 Insertion des données Monkeypox + code ISO
 for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), desc="Insertion des données Monkeypox"):
     try:
-        continent_id = get_or_insert_continent("Unknown")  # 🧭 pas de région définie ici
-        country_id = get_or_insert_country(row["location"], continent_id)
+        continent_id = get_or_insert_continent("Unknown")
+        iso_code = row.get("iso_code", None)
+        country_id = get_or_insert_country(row["location"], continent_id, iso_code)
         disease_id = get_or_insert_disease("Monkeypox")
         insert_global_data(
             country_id, disease_id, row.get("date"),
@@ -68,7 +69,7 @@ for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), d
 # 🚀 Insertion des données Worldometer
 for _, row in tqdm(df_worldometer.iterrows(), total=len(df_worldometer), desc="Insertion des données Worldometer"):
     try:
-        continent_id = get_or_insert_continent("Unknown")  # 🧭 pas de région définie ici non plus
+        continent_id = get_or_insert_continent("Unknown")
         country_id = get_or_insert_country(row["country"], continent_id)
         disease_id = get_or_insert_disease("COVID-19")
         insert_global_data(

@@ -11,7 +11,7 @@ def get_db_connection():
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")  # Assure-toi que le nom de la base est spécifié dans ton fichier .env
+        database=os.getenv("DB_NAME")
     )
     return connection
 
@@ -20,7 +20,6 @@ def get_or_insert_continent(name):
     connection = get_db_connection()
     cursor = connection.cursor()
     
-    # Vérifier si le continent existe déjà
     cursor.execute("SELECT id FROM Continent WHERE name = %s", (name,))
     result = cursor.fetchone()
     
@@ -28,34 +27,47 @@ def get_or_insert_continent(name):
         connection.close()
         return result[0]
     
-    # Insérer un nouveau continent
     cursor.execute("INSERT INTO Continent (name) VALUES (%s)", (name,))
     connection.commit()
     
-    # Récupérer l'ID du continent nouvellement inséré
     cursor.execute("SELECT id FROM Continent WHERE name = %s", (name,))
     continent_id = cursor.fetchone()[0]
     connection.close()
     return continent_id
 
-def get_or_insert_country(name, continent_id):
-    """Récupère l'ID du pays ou insère un nouveau pays."""
+def get_or_insert_country(name, continent_id, iso_code=None):
+    """Récupère l'ID du pays ou insère un nouveau pays (avec iso_code si fourni)."""
     connection = get_db_connection()
     cursor = connection.cursor()
     
-    # Vérifier si le pays existe déjà
     cursor.execute("SELECT id FROM Country WHERE name = %s", (name,))
     result = cursor.fetchone()
     
     if result:
+        country_id = result[0]
+        # Met à jour le code3 s'il n'est pas défini et qu'on a un iso_code
+        if iso_code:
+            cursor.execute("SELECT code3 FROM Country WHERE id = %s", (country_id,))
+            current_code = cursor.fetchone()[0]
+            if not current_code:
+                cursor.execute("UPDATE Country SET code3 = %s WHERE id = %s", (iso_code, country_id))
+                connection.commit()
         connection.close()
-        return result[0]
-    
-    # Insérer un nouveau pays
-    cursor.execute("INSERT INTO Country (name, continent_id) VALUES (%s, %s)", (name, continent_id))
+        return country_id
+
+    # Nouvelle insertion avec iso_code si fourni
+    if iso_code:
+        cursor.execute(
+            "INSERT INTO Country (name, continent_id, code3) VALUES (%s, %s, %s)",
+            (name, continent_id, iso_code)
+        )
+    else:
+        cursor.execute(
+            "INSERT INTO Country (name, continent_id) VALUES (%s, %s)",
+            (name, continent_id)
+        )
     connection.commit()
-    
-    # Récupérer l'ID du pays nouvellement inséré
+
     cursor.execute("SELECT id FROM Country WHERE name = %s", (name,))
     country_id = cursor.fetchone()[0]
     connection.close()
@@ -66,7 +78,6 @@ def get_or_insert_disease(name):
     connection = get_db_connection()
     cursor = connection.cursor()
     
-    # Vérifier si la maladie existe déjà
     cursor.execute("SELECT id FROM Disease WHERE name = %s", (name,))
     result = cursor.fetchone()
     
@@ -74,11 +85,9 @@ def get_or_insert_disease(name):
         connection.close()
         return result[0]
     
-    # Insérer une nouvelle maladie
     cursor.execute("INSERT INTO Disease (name) VALUES (%s)", (name,))
     connection.commit()
     
-    # Récupérer l'ID de la maladie nouvellement insérée
     cursor.execute("SELECT id FROM Disease WHERE name = %s", (name,))
     disease_id = cursor.fetchone()[0]
     connection.close()
@@ -89,7 +98,6 @@ def insert_global_data(country_id, disease_id, date, total_cases, new_cases, tot
     connection = get_db_connection()
     cursor = connection.cursor()
     
-    # Assurer que les champs sont bien définis (éviter l'insertion de `None` pour des colonnes obligatoires)
     cursor.execute("""
         INSERT INTO Global_Data (country_id, disease_id, date, total_cases, new_cases, total_deaths, new_deaths,
                                  total_recovered, new_recovered, active_cases, serious_critical, total_tests, tests_per_million)
@@ -108,17 +116,16 @@ def insert_global_data(country_id, disease_id, date, total_cases, new_cases, tot
         tests_per_million if tests_per_million is not None else None
     ))
     
-    # Commit des changements dans la base de données
     connection.commit()
     connection.close()
 
-# Exemple d'insertion des données à partir d'un fichier CSV ou d'une autre source
 def insert_data_from_csv(df):
-    """Fonction pour insérer les données d'un DataFrame dans la base de données."""
+    """Insère les données d'un DataFrame dans la base de données."""
     for _, row in df.iterrows():
         continent_name = row['Continent']
         country_name = row['Country/Region']
-        disease_name = "COVID-19"  # Exemple pour la maladie (s'adapte à ton cas)
+        iso_code = row.get('iso_code', None)  # Nouveau champ
+        disease_name = "COVID-19"
         date = row['Date']
         total_cases = row.get('Total Cases', None)
         new_cases = row.get('New Cases', None)
@@ -131,15 +138,13 @@ def insert_data_from_csv(df):
         total_tests = row.get('Total Tests', None)
         tests_per_million = row.get('Tests per Million', None)
         
-        # Insérer ou récupérer l'ID du continent
         continent_id = get_or_insert_continent(continent_name)
-        
-        # Insérer ou récupérer l'ID du pays
-        country_id = get_or_insert_country(country_name, continent_id)
-        
-        # Insérer ou récupérer l'ID de la maladie
+        country_id = get_or_insert_country(country_name, continent_id, iso_code)
         disease_id = get_or_insert_disease(disease_name)
         
-        # Insérer les données globales dans la base de données
-        insert_global_data(country_id, disease_id, date, total_cases, new_cases, total_deaths, new_deaths, total_recovered, new_recovered, active_cases, serious_critical, total_tests, tests_per_million)
-
+        insert_global_data(
+            country_id, disease_id, date,
+            total_cases, new_cases, total_deaths, new_deaths,
+            total_recovered, new_recovered, active_cases,
+            serious_critical, total_tests, tests_per_million
+        )
