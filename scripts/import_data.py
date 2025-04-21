@@ -69,7 +69,7 @@ def process_file(config):
             if "population_column" in config:
                 population = row.get(config["population_column"])
                 update_population(country_id, population)
-                continue  # Pas de données épidémiologiques à insérer
+                continue  
 
             if disease_name:
                 disease_id = get_or_insert_disease(disease_name)
@@ -89,13 +89,13 @@ def process_file(config):
                     row.get(fields.get("tests_per_million"))
                 )
         except Exception as e:
-            print(f"❌ Erreur pour {row.get(country_column)} : {e}")
+            print(f" Erreur pour {row.get(country_column)} : {e}")
 
 def main():
     for config in import_mappings:
         process_file(config)
 
-    print("\n✅ Données insérées avec succès !")
+    print("\n Données insérées avec succès !")
 
 if __name__ == "__main__":
     main()

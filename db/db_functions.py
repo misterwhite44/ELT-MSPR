@@ -2,7 +2,6 @@ import os
 import mysql.connector
 from dotenv import load_dotenv
 
-# Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
 def get_db_connection():
@@ -45,7 +44,6 @@ def get_or_insert_country(name, continent_id, iso_code=None):
     
     if result:
         country_id = result[0]
-        # Met à jour le code3 s'il n'est pas défini et qu'on a un iso_code
         if iso_code:
             cursor.execute("SELECT code3 FROM Country WHERE id = %s", (country_id,))
             current_code = cursor.fetchone()[0]
@@ -55,7 +53,6 @@ def get_or_insert_country(name, continent_id, iso_code=None):
         connection.close()
         return country_id
 
-    # Nouvelle insertion avec iso_code si fourni
     if iso_code:
         cursor.execute(
             "INSERT INTO Country (name, continent_id, code3) VALUES (%s, %s, %s)",
@@ -94,7 +91,6 @@ def get_or_insert_region(name, country_id):
     return region_id
 
 def update_population(country_id, population):
-    """Met à jour la population du pays dans la base de données."""
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -104,7 +100,6 @@ def update_population(country_id, population):
     connection.close()
 
 def get_or_insert_disease(name):
-    """Récupère l'ID de la maladie ou insère une nouvelle maladie."""
     connection = get_db_connection()
     cursor = connection.cursor()
     
@@ -124,7 +119,6 @@ def get_or_insert_disease(name):
     return disease_id
 
 def insert_global_data(country_id, disease_id, date, total_cases, new_cases, total_deaths, new_deaths, total_recovered, new_recovered, active_cases, serious_critical, total_tests, tests_per_million):
-    """Insère les données globales pour une maladie et un pays donné."""
     connection = get_db_connection()
     cursor = connection.cursor()
     
