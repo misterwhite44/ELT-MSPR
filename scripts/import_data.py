@@ -24,18 +24,17 @@ df_owid_monkeypox = pd.read_csv("data/owid-monkeypox-data.csv")
 df_worldometer = pd.read_csv("data/worldometer_coronavirus_daily_data.csv")
 
 # 🧹 Nettoyage des colonnes
-df_country_wise.columns = df_country_wise.columns.str.strip()
-df_owid_monkeypox.columns = df_owid_monkeypox.columns.str.strip()
-df_worldometer.columns = df_worldometer.columns.str.strip()
+for df in [df_country_wise, df_owid_monkeypox, df_worldometer]:
+    df.columns = df.columns.str.strip()
 
-# 🗓️ Conversion de la date Worldometer
+# 🗓️ Conversion des dates
 df_worldometer['date'] = pd.to_datetime(df_worldometer['date'], errors='coerce')
+df_owid_monkeypox['date'] = pd.to_datetime(df_owid_monkeypox['date'], errors='coerce')
 
 # 🚀 Insertion des données COVID-19
-for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc="Insertion des données COVID-19"):
+for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc="COVID-19 (country_wise_latest)"):
     try:
-        continent_name = row.get("WHO Region", "Unknown")
-        continent_id = get_or_insert_continent(continent_name)
+        continent_id = get_or_insert_continent(row.get("WHO Region", "Unknown"))
         country_id = get_or_insert_country(row["Country/Region"], continent_id)
         disease_id = get_or_insert_disease("COVID-19")
         insert_global_data(
@@ -48,8 +47,8 @@ for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc=
     except Exception as e:
         print(f"❌ Erreur pour {row.get('Country/Region')}: {e}")
 
-# 🚀 Insertion des données Monkeypox + code ISO
-for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), desc="Insertion des données Monkeypox"):
+# 🚀 Insertion des données Monkeypox avec code ISO
+for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), desc="Monkeypox (owid)"):
     try:
         continent_id = get_or_insert_continent("Unknown")
         iso_code = row.get("iso_code", None)
@@ -67,7 +66,7 @@ for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), d
         print(f"❌ Erreur pour {row.get('location')}: {e}")
 
 # 🚀 Insertion des données Worldometer
-for _, row in tqdm(df_worldometer.iterrows(), total=len(df_worldometer), desc="Insertion des données Worldometer"):
+for _, row in tqdm(df_worldometer.iterrows(), total=len(df_worldometer), desc="COVID-19 (worldometer)"):
     try:
         continent_id = get_or_insert_continent("Unknown")
         country_id = get_or_insert_country(row["country"], continent_id)
