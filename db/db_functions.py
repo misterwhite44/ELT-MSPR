@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 import mysql.connector
 
-# 🔐 Chargement des variables d'environnement
+#  Chargement des variables d'environnement
 load_dotenv()
 
 def get_db_connection():
