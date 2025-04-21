@@ -73,6 +73,26 @@ def get_or_insert_country(name, continent_id, iso_code=None):
     connection.close()
     return country_id
 
+def get_or_insert_region(name, country_id):
+    """Récupère l'ID de la région ou insère une nouvelle région."""
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT id FROM Region WHERE name = %s AND country_id = %s", (name, country_id))
+    result = cursor.fetchone()
+    
+    if result:
+        connection.close()
+        return result[0]
+    
+    cursor.execute("INSERT INTO Region (name, country_id) VALUES (%s, %s)", (name, country_id))
+    connection.commit()
+    
+    cursor.execute("SELECT id FROM Region WHERE name = %s AND country_id = %s", (name, country_id))
+    region_id = cursor.fetchone()[0]
+    connection.close()
+    return region_id
+
 def update_population(country_id, population):
     """Met à jour la population du pays dans la base de données."""
     connection = get_db_connection()
