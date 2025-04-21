@@ -77,7 +77,7 @@ for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), d
             row.get("total_tests"), row.get("tests_per_million")
         )
     except Exception as e:
-        print(f"❌ Erreur pour {row.get('location')}: {e}")
+        print(f"Erreur pour {row.get('location')}: {e}")
 
 #  Insertion des données Worldometer
 for _, row in tqdm(df_worldometer.iterrows(), total=len(df_worldometer), desc="COVID-19 (worldometer)"):
