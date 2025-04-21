@@ -13,7 +13,8 @@ from db.db_functions import (
     get_or_insert_country,
     get_or_insert_disease,
     insert_global_data,
-    update_population
+    update_population,
+    get_or_insert_region
 )
 
 #  Chargement des variables d'environnement
@@ -24,6 +25,7 @@ df_country_wise = pd.read_csv("data/country_wise_latest.csv")
 df_owid_monkeypox = pd.read_csv("data/owid-monkeypox-data.csv")
 df_worldometer = pd.read_csv("data/worldometer_coronavirus_daily_data.csv")
 df_worldometer_data = pd.read_csv("data/worldometer_data.csv.xls")
+df_usa_county_wise = pd.read_csv("data/usa_county_wise.csv")
 
 
 # 🧹 Nettoyage des colonnes
@@ -95,5 +97,14 @@ for _, row in tqdm(df_worldometer.iterrows(), total=len(df_worldometer), desc="C
     except Exception as e:
         print(f" Erreur pour {row.get('country')}: {e}")
 
+for _, row in tqdm(df_usa_county_wise.iterrows(), total=len(df_usa_county_wise), desc="COVID-19 (USA county wise)"):
+    try:
+        name = row.get("Province_State", "Unknown")
+        country_id = get_or_insert_country("USA", None)
+
+        get_or_insert_region(name, country_id)
+
+    except Exception as e:
+        print(f"❌ Erreur pour {row.get('Province_State')}: {e}")
 
 print("Données insérées avec succès !")
