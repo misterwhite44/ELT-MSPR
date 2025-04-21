@@ -12,7 +12,8 @@ from db.db_functions import (
     get_or_insert_continent,
     get_or_insert_country,
     get_or_insert_disease,
-    insert_global_data
+    insert_global_data,
+    update_population
 )
 
 #  Chargement des variables d'environnement
@@ -22,9 +23,11 @@ load_dotenv()
 df_country_wise = pd.read_csv("data/country_wise_latest.csv")
 df_owid_monkeypox = pd.read_csv("data/owid-monkeypox-data.csv")
 df_worldometer = pd.read_csv("data/worldometer_coronavirus_daily_data.csv")
+df_worldometer_data = pd.read_csv("data/worldometer_data.csv.xls")
+
 
 # 🧹 Nettoyage des colonnes
-for df in [df_country_wise, df_owid_monkeypox, df_worldometer]:
+for df in [df_country_wise, df_owid_monkeypox, df_worldometer, df_worldometer_data]:
     df.columns = df.columns.str.strip()
 
 #  Conversion des dates
@@ -47,7 +50,18 @@ for _, row in tqdm(df_country_wise.iterrows(), total=len(df_country_wise), desc=
     except Exception as e:
         print(f"❌ Erreur pour {row.get('Country/Region')}: {e}")
 
-#  Insertion des données Monkeypox avec code ISO
+for _, row in tqdm(df_worldometer_data.iterrows(), total=len(df_worldometer_data), desc="Mise à jour des populations"):
+    try:
+        country_name = row["Country/Region"]
+        population = row.get("Population")
+        continent_id = get_or_insert_continent(row.get("Continent", "Unknown"))
+        country_id = get_or_insert_country(country_name, continent_id)
+        
+        # Mise à jour de la population
+        update_population(country_id, population)
+    except Exception as e:
+        print(f"❌ Erreur pour {row.get('Country/Region')}: {e}")
+
 for _, row in tqdm(df_owid_monkeypox.iterrows(), total=len(df_owid_monkeypox), desc="Monkeypox (owid)"):
     try:
         continent_id = get_or_insert_continent("Unknown")
@@ -79,6 +93,7 @@ for _, row in tqdm(df_worldometer.iterrows(), total=len(df_worldometer), desc="C
             row.get("active_cases"), None, None, None
         )
     except Exception as e:
-        print(f"❌ Erreur pour {row.get('country')}: {e}")
+        print(f" Erreur pour {row.get('country')}: {e}")
 
-print("✅ Données insérées avec succès !")
+
+print("Données insérées avec succès !")
