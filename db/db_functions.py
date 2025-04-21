@@ -94,7 +94,6 @@ def update_population(country_id, population):
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    # Mettre à jour la population pour le pays donné
     cursor.execute("UPDATE Country SET population = %s WHERE id = %s", (population, country_id))
     connection.commit()
     connection.close()

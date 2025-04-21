@@ -5,7 +5,6 @@ from tqdm import tqdm
 from dotenv import load_dotenv
 from datetime import datetime
 
-# Configuration du chemin du projet pour les imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # Dossier racine
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config')))  # Dossier config
 print("Current sys.path:", sys.path)
@@ -20,9 +19,8 @@ from db.db_functions import (
     get_or_insert_region
 )
 
-from import_config import import_mappings  # Import du fichier de configuration
+from import_config import import_mappings 
 
-# Chargement des variables d'environnement
 load_dotenv()
 
 def clean_columns(df):
