@@ -22,6 +22,11 @@ import_mappings = [
         "population_column": "Population"
     },
     {
+        "path": "data/usa_county_wise.csv",
+        "country_column": "Province_State",
+        "region_column": "Province_State"
+    },
+    {
         "path": "data/owid-monkeypox-data.csv",
         "disease": "Monkeypox",
         "country_column": "location",
@@ -50,9 +55,5 @@ import_mappings = [
             "active_cases": "active_cases"
         }
     },
-    {
-        "path": "data/usa_county_wise.csv",
-        "country_column": "Province_State",
-        "region_column": "Province_State"
-    }
+    
 ]

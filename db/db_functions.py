@@ -135,7 +135,7 @@ def insert_global_data(country_id, disease_id, date, total_cases, new_cases, tot
         new_recovered if new_recovered is not None else None,
         active_cases if active_cases is not None else None,
         serious_critical if serious_critical is not None else None,
-        total_tests if total_tests is not None else None,
+        total_tests if total_tests is not None else None, 
         tests_per_million if tests_per_million is not None else None
     ))
     connection.commit()
