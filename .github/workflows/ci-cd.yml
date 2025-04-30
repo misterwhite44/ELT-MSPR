@@ -44,9 +44,10 @@ jobs:
           distribution: 'temurin'
 
       - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@v1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          JAVA_HOME: ${{ steps.java.outputs.java-home }}
+        uses: sonarsource/sonarcloud-github-action@v1
         with:
           args: >
             -Dsonar.projectKey=misterwhite44
