@@ -43,16 +43,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: SonarCloud Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          JAVA_HOME: ${{ steps.java.outputs.java-home }}
-        uses: sonarsource/sonarcloud-github-action@v1
-        with:
-          args: >
-            -Dsonar.projectKey=misterwhite44
-            -Dsonar.organization=Tomate
-            -Dsonar.python.version=3.11
+      - name: Run SonarCloud Scanner
+        run: |
+            pip install sonar-scanner-cli
+            sonar-scanner \
+              -Dsonar.projectKey=misterwhite44 \
+              -Dsonar.organization=Tomate \
+              -Dsonar.python.version=3.11 \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        
 
       - name: Install Trivy
         run: |
