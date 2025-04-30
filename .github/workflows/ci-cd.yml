@@ -25,8 +25,42 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install flake8
+
+      - name: Run linter
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
 
       - name: Run tests
         run: |
           # Add your test command here, e.g., pytest
           echo "No tests defined yet."
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@v1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=misterwhite44
+            -Dsonar.organization=Tomate
+            -Dsonar.python.version=3.11
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+      - name: Run Trivy on project
+        run: |
+          ./trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+
+      - name: Build Python package
+        run: |
+          python setup.py sdist bdist_wheel
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package
+          path: dist/
